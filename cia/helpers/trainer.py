@@ -94,7 +94,7 @@ def train(training_opts):
         score,  model, feature_importances, features_to_use = train_using_best_features(
             training_opts,
         )
-        print(i, score, len(feature_importances))
+        print('{}: {}'.format(len(feature_importances), score))
         scores_and_features.append((score, model, feature_importances, features_to_use))
 
     best_scores = sorted(scores_and_features, key=lambda x: x[0], reverse=True)
