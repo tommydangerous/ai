@@ -1,4 +1,6 @@
+import math
 import numpy as np
+import pandas as pd
 
 from helpers import common as cm
 from helpers import cleaner as cl
@@ -72,34 +74,35 @@ def train_using_best_features(opts={}):
 
 def train(training_opts):
     features_to_use = training_opts['features_to_use']
-    final_index = len(features_to_use) - 1
-    n_times_to_try = training_opts.get(
-        'n_times_to_try',
-        min([
-            final_index,
-            200,
-        ]),
+    max_index = len(features_to_use) - 1
+
+    power = 2
+    max_iter = int(math.ceil(max_index**(1.0 / power)))
+
+    n_features_to_try = training_opts.get(
+        'n_features_to_try',
+        sorted(
+            list(set([int(math.floor((i**power))) for i in range(1, max_iter)] + [max_index])),
+            reverse=True,
+        ),
     )
 
     scores_and_features = []
 
-    for idx, i in enumerate(range(0, n_times_to_try)):
-        if idx == 0:
-            end_idx = max([n_times_to_try - i, 1])
-        else:
-            end_idx = final_index
-
-        arr = features_to_use[0:end_idx]
-
+    for i in n_features_to_try:
+        training_opts['features_to_use'] = features_to_use[:i]
         score,  model, feature_importances, features_to_use = train_using_best_features(
             training_opts,
         )
+        print(i, score, len(feature_importances))
         scores_and_features.append((score, model, feature_importances, features_to_use))
 
     best_scores = sorted(scores_and_features, key=lambda x: x[0], reverse=True)
 
     for tup in best_scores[0:3]:
-        print(tup[0], len(tup[1]))
+        print('\n')
+        print('Top 3:')
+        print(tup[0], len(tup[2]))
 
     return best_scores[0]
 
